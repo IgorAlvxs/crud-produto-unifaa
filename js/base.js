@@ -20,3 +20,21 @@ function sairDoSistema(){
     localStorage.removeItem('usuario');
     window.open('login.html', '_self');
 }
+
+function usuarioLogado(){
+    let token = obterToken()
+    return !!token;
+}
+
+function validarUsuarioAutentica(){
+    let logado = usuarioLogado();
+    if(window.location.pathname == '/login.html'){
+        if(logado)
+            window.open('controle-produtos.html', '_self')
+    } else {
+        if(!logado)
+            window.open('login.html', '_self')
+    }
+}
+
+validarUsuarioAutentica()

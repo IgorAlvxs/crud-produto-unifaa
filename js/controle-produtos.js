@@ -5,7 +5,10 @@ let btnAdicionar = document.querySelector("#btn-adicionar");
 let tabelaProduto = document.querySelector("table>tbody");
 let modalProduto = new bootstrap.Modal(document.getElementById('modal-produto'))
 
+let modoEdicao = false;
+
 let formModal = {
+    titulo: document.querySelector("h4.modal-title"),
     id: document.querySelector("#id"),
     nome: document.querySelector("#nome"),
     valor: document.querySelector("#valor"),
@@ -17,9 +20,29 @@ let formModal = {
 }
 
 btnAdicionar.addEventListener('click', () =>{
+    modoEdicao = false;
+    formModal.titulo.textContent = "Adicionar Cliente"
+
     limparModalProduto();
     modalProduto.show()
 })
+
+function editarProduto(id){
+    modoEdicao = true;
+    formModal.titulo.textContent = "Editar Cliente";
+    let produto = listaProdutos.find(p => p.id == id)
+    atualizarModalProduto(produto)
+    modalProduto.show();
+}
+
+function atualizarModalProduto(produto){
+    formModal.id.value = produto.id;
+    formModal.nome.value = produto.nome;
+    formModal.valor.value = produto.valor;
+    formModal.quantidadeEstoque.value = produto.quantidadeEstoque;
+    formModal.observacao.value = produto.observacao;
+    formModal.dataCadastro.value = produto.dataCadastro.substring(0,10);
+}
 
 function obterProdutos(){
     fetch(URL, {
@@ -89,8 +112,39 @@ formModal.btnSalvar.addEventListener('click', () =>{
         return;
     }
 
-    adicionarProdutoBackend(produto);
+    if (modoEdicao){
+        atualizarProdutoBackend(produto);
+    } else {
+        adicionarProdutoBackend(produto);
+    }
 })
+
+function atualizarProdutoBackend(produto){
+    fetch(`${URL}/${produto.id}`, {
+        method: "PUT",
+        headers: {
+            Authorization: obterProdutos(),
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify(produto)
+    })
+    .then(response => response.json())
+    .then(() => {
+        atualizarProdutoNaTabela(produto)
+
+        alert("Produto atualizado")
+
+        modalProduto.hide()
+    })
+}
+
+function atualizarProdutoNaTabela(produto){
+    let indice = listaProdutos.findIndex(p => p.id == produto.id)
+    
+    listaProdutos.splice(indice, 1, produto);
+
+    popularTabela(listaProdutos)
+}
 
 function obterProdutosModal(){
     return new Produto({
